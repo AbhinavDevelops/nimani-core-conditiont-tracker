@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { sections, STORAGE_KEY } from "./data";
+import { CANONICAL, GROUP_MEMBERS } from "./duplicates";
 import "./App.css";
 
 const STATUS = {
@@ -25,10 +26,18 @@ function useProgress() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(progress));
   }, [progress]);
 
-  const setStatus = (id, status) =>
-    setProgress((p) => ({ ...p, [id]: status }));
+  // Always read/write via canonical ID
+  const getStatus = (id) => {
+    const canon = CANONICAL[id] ?? id;
+    return progress[canon] || "untouched";
+  };
 
-  return { progress, setStatus };
+  const setStatus = (id, status) => {
+    const canon = CANONICAL[id] ?? id;
+    setProgress((p) => ({ ...p, [canon]: status }));
+  };
+
+  return { progress, getStatus, setStatus };
 }
 
 function StatusCycle({ id, status, onSet }) {
@@ -49,6 +58,7 @@ function StatusCycle({ id, status, onSet }) {
 }
 
 function ConditionRow({ condition, status, onSet }) {
+  const isLinked = CANONICAL[condition.id] !== undefined;
   return (
     <div className={`condition-row status-${status || "untouched"}`}>
       <div className="condition-name">
@@ -56,19 +66,24 @@ function ConditionRow({ condition, status, onSet }) {
           {YIELD_LABELS[condition.yield]}
         </span>
         <span>{condition.name}</span>
+        {isLinked && (
+          <span className="linked-badge" title="Shared across multiple sections — ticking here updates all">
+            ⟳ linked
+          </span>
+        )}
       </div>
       <StatusCycle id={condition.id} status={status} onSet={onSet} />
     </div>
   );
 }
 
-function SectionCard({ section, progress, setStatus, isOpen, onToggle }) {
+function SectionCard({ section, getStatus, setStatus, isOpen, onToggle }) {
   const total = section.conditions.length;
   const done = section.conditions.filter(
-    (c) => (progress[c.id] || "untouched") === "done"
+    (c) => getStatus(c.id) === "done"
   ).length;
   const confident = section.conditions.filter(
-    (c) => (progress[c.id] || "untouched") === "confident"
+    (c) => getStatus(c.id) === "confident"
   ).length;
   const pct = Math.round(((done + confident) / total) * 100);
 
@@ -97,7 +112,7 @@ function SectionCard({ section, progress, setStatus, isOpen, onToggle }) {
             <ConditionRow
               key={c.id}
               condition={c}
-              status={progress[c.id]}
+              status={getStatus(c.id)}
               onSet={setStatus}
             />
           ))}
@@ -107,12 +122,12 @@ function SectionCard({ section, progress, setStatus, isOpen, onToggle }) {
   );
 }
 
-function Stats({ progress }) {
+function Stats({ getStatus }) {
   const all = sections.flatMap((s) => s.conditions);
   const total = all.length;
   const counts = Object.fromEntries(Object.keys(STATUS).map((k) => [k, 0]));
   all.forEach((c) => {
-    const s = progress[c.id] || "untouched";
+    const s = getStatus(c.id);
     counts[s]++;
   });
   const done = counts.done + counts.confident;
@@ -136,9 +151,7 @@ function Stats({ progress }) {
       <div className="total-bar">
         <div
           className="total-fill"
-          style={{
-            width: `${pct}%`,
-          }}
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>
@@ -146,9 +159,10 @@ function Stats({ progress }) {
 }
 
 export default function App() {
-  const { progress, setStatus } = useProgress();
+  const { getStatus, setStatus } = useProgress();
   const [openSections, setOpenSections] = useState(() => new Set());
   const [filter, setFilter] = useState("all");
+  const [yieldFilter, setYieldFilter] = useState("all");
   const [search, setSearch] = useState("");
 
   const toggleSection = (id) => {
@@ -167,15 +181,17 @@ export default function App() {
       .map((section) => {
         const conditions = section.conditions.filter((c) => {
           const statusMatch =
-            filter === "all" || (progress[c.id] || "untouched") === filter;
+            filter === "all" || getStatus(c.id) === filter;
+          const yieldMatch =
+            yieldFilter === "all" || c.yield === Number(yieldFilter);
           const searchMatch =
             !search || c.name.toLowerCase().includes(search.toLowerCase());
-          return statusMatch && searchMatch;
+          return statusMatch && yieldMatch && searchMatch;
         });
         return { ...section, conditions };
       })
       .filter((s) => s.conditions.length > 0);
-  }, [filter, search, progress]);
+  }, [filter, yieldFilter, search, getStatus]);
 
   return (
     <div className="app">
@@ -188,15 +204,11 @@ export default function App() {
             <p className="app-subtitle">Abhinav Rajaram · Medical Study Tracker</p>
           </div>
           <div className="header-actions">
-            <button className="ghost-btn" onClick={expandAll}>
-              Expand all
-            </button>
-            <button className="ghost-btn" onClick={collapseAll}>
-              Collapse all
-            </button>
+            <button className="ghost-btn" onClick={expandAll}>Expand all</button>
+            <button className="ghost-btn" onClick={collapseAll}>Collapse all</button>
           </div>
         </div>
-        <Stats progress={progress} />
+        <Stats getStatus={getStatus} />
       </header>
 
       <div className="toolbar">
@@ -222,6 +234,17 @@ export default function App() {
             </button>
           ))}
         </div>
+        <div className="filter-pills">
+          {[["all", "Any yield"], ["3", "+++"], ["2", "++"], ["1", "+"]].map(([val, label]) => (
+            <button
+              key={val}
+              className={`pill ${yieldFilter === val ? "active" : ""} ${val !== "all" ? "yp" + val : ""}`}
+              onClick={() => setYieldFilter(val)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <main className="sections-list">
@@ -232,7 +255,7 @@ export default function App() {
           <SectionCard
             key={section.id}
             section={section}
-            progress={progress}
+            getStatus={getStatus}
             setStatus={setStatus}
             isOpen={openSections.has(section.id)}
             onToggle={() => toggleSection(section.id)}
@@ -241,7 +264,7 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        Progress saved locally · Click any status badge to cycle through stages · +++ = highest yield
+        Progress saved locally · Click any status badge to cycle · ⟳ linked = shared across sections · +++ = highest yield
       </footer>
     </div>
   );

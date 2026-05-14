@@ -412,3 +412,21 @@ body {
   .toolbar { flex-direction: column; align-items: stretch; }
   .search-input { width: 100%; }
 }
+
+/* Linked badge */
+.linked-badge {
+  font-size: 10px;
+  font-family: 'DM Mono', monospace;
+  color: #a78bfa;
+  background: #2d1f4e;
+  border: 1px solid #4c3890;
+  padding: 1px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Yield filter pills */
+.pill.yp3.active { background: #0f2e1a; border-color: #4ade80; color: #4ade80; }
+.pill.yp2.active { background: #0f2744; border-color: #60a5fa; color: #60a5fa; }
+.pill.yp1.active { background: #1a1a2e; border-color: #6b6b8a; color: #a0a0c0; }
