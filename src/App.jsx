@@ -133,18 +133,43 @@ function Stats({ getStatus }) {
   const done = counts.done + counts.confident;
   const pct = Math.round((done / total) * 100);
 
+  // Calculate yield type breakdown
+  const yieldStats = [1, 2, 3].map((yieldType) => {
+    const yieldConditions = all.filter((c) => c.yield === yieldType);
+    const yieldTotal = yieldConditions.length;
+    const yieldDone = yieldConditions.filter(
+      (c) => {
+        const status = getStatus(c.id);
+        return status === "done" || status === "confident";
+      }
+    ).length;
+    const yieldPct = yieldTotal > 0 ? Math.round((yieldDone / yieldTotal) * 100) : 0;
+    return { yieldType, yieldTotal, yieldDone, yieldPct };
+  });
+
   return (
     <div className="stats-bar">
-      <div className="stat-overview">
-        <span className="big-pct">{pct}%</span>
-        <span className="stat-sub">{done} / {total} completed</span>
+      <div className="stats-row-one">
+        <div className="stat-overview">
+          <span className="big-pct">{pct}%</span>
+          <span className="stat-sub">{done} / {total} completed</span>
+        </div>
+        <div className="stat-breakdown">
+          {Object.entries(STATUS).map(([k, v]) => (
+            <div key={k} className="stat-item">
+              <span className="stat-dot" style={{ background: v.dot }} />
+              <span className="stat-num">{counts[k]}</span>
+              <span className="stat-lbl">{v.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="stat-breakdown">
-        {Object.entries(STATUS).map(([k, v]) => (
-          <div key={k} className="stat-item">
-            <span className="stat-dot" style={{ background: v.dot }} />
-            <span className="stat-num">{counts[k]}</span>
-            <span className="stat-lbl">{v.label}</span>
+      <div className="yield-breakdown">
+        {yieldStats.map(({ yieldType, yieldTotal, yieldDone, yieldPct }) => (
+          <div key={yieldType} className="yield-stat">
+            <span className="yield-label">{YIELD_LABELS[yieldType]}</span>
+            <span className="yield-pct">{yieldPct}%</span>
+            <span className="yield-sub">({yieldDone}/{yieldTotal})</span>
           </div>
         ))}
       </div>

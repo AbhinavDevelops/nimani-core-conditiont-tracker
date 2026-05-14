@@ -101,6 +101,12 @@ body {
   border-radius: var(--radius);
   padding: 20px 24px;
   display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stats-row-one {
+  display: flex;
   align-items: center;
   gap: 28px;
   flex-wrap: wrap;
@@ -131,6 +137,7 @@ body {
   gap: 16px;
   flex-wrap: wrap;
   flex: 1;
+  align-items: center;
 }
 
 .stat-item {
@@ -156,6 +163,43 @@ body {
 
 .stat-lbl {
   color: var(--text-muted);
+}
+
+.yield-breakdown {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 12px 0;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+
+.yield-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 60px;
+}
+
+.yield-label {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.yield-pct {
+  font-family: 'DM Mono', monospace;
+  font-size: 16px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.yield-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-family: 'DM Mono', monospace;
 }
 
 .total-bar {
