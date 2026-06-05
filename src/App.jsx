@@ -12,7 +12,6 @@ const STATUS = {
 };
 
 const YIELD_LABELS = { 1: "+", 2: "++", 3: "+++" };
-const TIER_LABELS = { 2: "Core #2", 3: "Core #3" };
 
 function useProgress() {
   const [progress, setProgress] = useState(() => {
@@ -60,22 +59,12 @@ function StatusCycle({ id, status, onSet }) {
 
 function ConditionRow({ condition, status, onSet }) {
   const isLinked = CANONICAL[condition.id] !== undefined;
-  const hasTier = condition.tier !== undefined;
-  const hasYield = condition.yield !== undefined;
-  
   return (
     <div className={`condition-row status-${status || "untouched"}`}>
       <div className="condition-name">
-        {hasYield && (
-          <span className={`yield-badge y${condition.yield}`}>
-            {YIELD_LABELS[condition.yield]}
-          </span>
-        )}
-        {hasTier && (
-          <span className={`tier-badge t${condition.tier}`}>
-            {TIER_LABELS[condition.tier]}
-          </span>
-        )}
+        <span className={`yield-badge y${condition.yield}`}>
+          {YIELD_LABELS[condition.yield]}
+        </span>
         <span>{condition.name}</span>
         {isLinked && (
           <span className="linked-badge" title="Shared across multiple sections — ticking here updates all">
@@ -199,7 +188,6 @@ export default function App() {
   const [openSections, setOpenSections] = useState(() => new Set());
   const [filter, setFilter] = useState("all");
   const [yieldFilter, setYieldFilter] = useState("all");
-  const [tierFilter, setTierFilter] = useState("all");
   const [search, setSearch] = useState("");
 
   const toggleSection = (id) => {
@@ -221,16 +209,14 @@ export default function App() {
             filter === "all" || getStatus(c.id) === filter;
           const yieldMatch =
             yieldFilter === "all" || c.yield === Number(yieldFilter);
-          const tierMatch =
-            tierFilter === "all" || c.tier === Number(tierFilter);
           const searchMatch =
             !search || c.name.toLowerCase().includes(search.toLowerCase());
-          return statusMatch && yieldMatch && tierMatch && searchMatch;
+          return statusMatch && yieldMatch && searchMatch;
         });
         return { ...section, conditions };
       })
       .filter((s) => s.conditions.length > 0);
-  }, [filter, yieldFilter, tierFilter, search, getStatus]);
+  }, [filter, yieldFilter, search, getStatus]);
 
   return (
     <div className="app">
@@ -284,17 +270,6 @@ export default function App() {
             </button>
           ))}
         </div>
-        <div className="filter-pills">
-          {[["all", "Any tier"], ["3", "Core #3"], ["2", "Core #2"]].map(([val, label]) => (
-            <button
-              key={val}
-              className={`pill ${tierFilter === val ? "active" : ""} ${val !== "all" ? "tp" + val : ""}`}
-              onClick={() => setTierFilter(val)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
       </div>
 
       <main className="sections-list">
@@ -314,7 +289,7 @@ export default function App() {
       </main>
 
       <footer className="app-footer">
-        Progress saved locally · Click any status badge to cycle · ⟳ linked = shared across sections · +++ = highest yield · Core #3/#2 = Rural GP tiers
+        Progress saved locally · Click any status badge to cycle · ⟳ linked = shared across sections · +++ = highest yield
       </footer>
     </div>
   );
