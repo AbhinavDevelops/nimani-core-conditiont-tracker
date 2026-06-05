@@ -399,6 +399,19 @@ body {
 .yield-badge.y2 { background: #1a2233; color: #60a5fa; border: 1px solid #1e3a5f; }
 .yield-badge.y3 { background: #1a2e1a; color: #4ade80; border: 1px solid #1a3e1a; }
 
+.tier-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+}
+
+.tier-badge.t3 { background: #2a1a3a; color: #d084d0; border: 1px solid #4a2a5a; }
+.tier-badge.t2 { background: #3a2a1a; color: #f0a040; border: 1px solid #5a3a2a; }
+
 /* STATUS BUTTON */
 .status-btn {
   display: flex;
@@ -474,3 +487,7 @@ body {
 .pill.yp3.active { background: #0f2e1a; border-color: #4ade80; color: #4ade80; }
 .pill.yp2.active { background: #0f2744; border-color: #60a5fa; color: #60a5fa; }
 .pill.yp1.active { background: #1a1a2e; border-color: #6b6b8a; color: #a0a0c0; }
+
+/* Tier filter pills */
+.pill.tp3.active { background: #2a1a3a; border-color: #d084d0; color: #d084d0; }
+.pill.tp2.active { background: #3a2a1a; border-color: #f0a040; color: #f0a040; }
